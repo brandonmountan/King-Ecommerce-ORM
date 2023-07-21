@@ -1,12 +1,12 @@
 const router = require("express").Router();
-const { Product, Category, Tag, ProductTag } = require("../../models");
-
+const { Category, Tag, ProductTag } = require("../../models");
+const Product = require('../../models/Product')
 // The `/api/products` endpoint
 
 // get all products
 router.get("/", async (req, res) => {
   // find all products
-  // be sure to include its associated Category and Tag data
+  console.log('get working')
   try {
     const productData = await Product.findAll();
     res.status(200).json(productData);
@@ -22,7 +22,6 @@ router.get("/:id", async (req, res) => {
   try {
     const productData = await Product.findByPk(req.params.id, {
       include: [
-        // Category,
         {
           model: Tag,
           through: ProductTag,
@@ -31,7 +30,6 @@ router.get("/:id", async (req, res) => {
           model: Category,
         },
       ],
-      // include: Tag,
     });
     if (!productData) {
       res.status(404).json({ message: "No product data found for this id" });
@@ -50,7 +48,8 @@ router.post("/", (req, res) => {
   console.log(req.body);
   Product.create(req.body)
     .then((product) => {
-      if (req.body.tagIds.length) {
+      console.log("after .then")
+      if (req.body.tagIds?.length) {
         const productTagIdArr = req.body.tagIds.map((tag_id) => {
           return {
             product_id: product.id,
@@ -66,27 +65,6 @@ router.post("/", (req, res) => {
       console.log(err);
       res.status(400).json(err);
     });
-  // Product.create(req.body)
-  //   .then((product) => {
-  //     // if there's product tags, we need to create pairings to bulk create in the ProductTag model
-  //     if (req.body.tagIds.length) {
-  //       console.log('inside if')
-  //       const productTagIdArr = req.body.tagIds.map((tag_id) => {
-  //         return {
-  //           product_id: product.id,
-  //           tag_id
-  //         };
-  //       });
-  //       return ProductTag.bulkCreate(productTagIdArr);
-  //     }
-  //     // if no product tags, just respond
-  //     res.status(200).json(product);
-  //   })
-  //   .then((productTagIds) => res.status(200).json(productTagIds))
-  //   .catch((err) => {
-  //     console.log(err);
-  //     res.status(400).json(err);
-  //   });
 });
 
 // update product
@@ -126,7 +104,7 @@ router.put("/:id", (req, res) => {
     })
     .then((updatedProductTags) => res.json(updatedProductTags))
     .catch((err) => {
-      // console.log(err);
+      console.log(err);
       res.status(400).json(err);
     });
 });
